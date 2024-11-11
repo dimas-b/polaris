@@ -17,37 +17,25 @@
  * under the License.
  */
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
   alias(libs.plugins.openapi.generator)
   id("polaris-server")
   id("polaris-license-report")
-  id("polaris-shadow-jar")
   id("application")
 }
 
 dependencies {
   implementation(project(":polaris-core"))
+  implementation(libs.jakarta.servlet.api)
+  implementation(libs.jakarta.rs.api)
+  implementation(libs.jakarta.validation.api)
 
   implementation(platform(libs.iceberg.bom))
   implementation("org.apache.iceberg:iceberg-api")
   implementation("org.apache.iceberg:iceberg-core")
   implementation("org.apache.iceberg:iceberg-aws")
-  implementation(libs.hadoop.common) {
-    exclude("org.slf4j", "slf4j-reload4j")
-    exclude("org.slf4j", "slf4j-log4j12")
-    exclude("ch.qos.reload4j", "reload4j")
-    exclude("log4j", "log4j")
-    exclude("org.apache.zookeeper", "zookeeper")
-  }
-  implementation(libs.hadoop.hdfs.client)
-
-  implementation(platform(libs.dropwizard.bom))
-  implementation("io.dropwizard:dropwizard-core")
-  implementation("io.dropwizard:dropwizard-auth")
-  implementation("io.dropwizard:dropwizard-json-logging")
 
   implementation(platform(libs.jackson.bom))
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
@@ -78,9 +66,9 @@ dependencies {
 
   implementation(libs.auth0.jwt)
 
-  implementation(libs.logback.core)
   implementation(libs.bouncycastle.bcprov)
 
+  compileOnly(libs.jakarta.annotation.api)
   compileOnly(libs.jetbrains.annotations)
   compileOnly(libs.spotbugs.annotations)
 
@@ -93,33 +81,10 @@ dependencies {
   implementation(platform(libs.azuresdk.bom))
   implementation("com.azure:azure-core")
 
-  testImplementation("org.apache.iceberg:iceberg-api:${libs.versions.iceberg.get()}:tests")
-  testImplementation("org.apache.iceberg:iceberg-core:${libs.versions.iceberg.get()}:tests")
-  testImplementation("io.dropwizard:dropwizard-testing")
-  testImplementation(platform(libs.testcontainers.bom))
-  testImplementation("org.testcontainers:testcontainers")
-  testImplementation(libs.s3mock.testcontainers)
-
-  testImplementation("org.apache.iceberg:iceberg-spark-3.5_2.12")
-  testImplementation("org.apache.iceberg:iceberg-spark-extensions-3.5_2.12")
-  testImplementation("org.apache.spark:spark-sql_2.12:3.5.1") {
-    // exclude log4j dependencies
-    exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
-    exclude("org.apache.logging.log4j", "log4j-api")
-    exclude("org.apache.logging.log4j", "log4j-1.2-api")
-  }
-
-  testImplementation("software.amazon.awssdk:glue")
-  testImplementation("software.amazon.awssdk:kms")
-  testImplementation("software.amazon.awssdk:dynamodb")
-
   testImplementation(platform(libs.junit.bom))
   testImplementation("org.junit.jupiter:junit-jupiter")
   testImplementation(libs.assertj.core)
   testImplementation(libs.mockito.core)
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-  testRuntimeOnly(project(":polaris-eclipselink"))
 }
 
 if (project.properties.get("eclipseLink") == "true") {
@@ -218,15 +183,6 @@ sourceSets {
   main { java { srcDir(project.layout.buildDirectory.dir("generated/src/main/java")) } }
 }
 
-tasks.named<Test>("test").configure {
-  if (System.getenv("AWS_REGION") == null) {
-    environment("AWS_REGION", "us-west-2")
-  }
-  jvmArgs("--add-exports", "java.base/sun.nio.ch=ALL-UNNAMED")
-  useJUnitPlatform()
-  maxParallelForks = 4
-}
-
 tasks.register<JavaExec>("runApp").configure {
   if (System.getenv("AWS_REGION") == null) {
     environment("AWS_REGION", "us-west-2")
@@ -236,37 +192,7 @@ tasks.register<JavaExec>("runApp").configure {
   args("server", "$rootDir/polaris-server.yml")
 }
 
-application { mainClass = "org.apache.polaris.service.PolarisApplication" }
-
-tasks.named<Jar>("jar") {
-  manifest { attributes["Main-Class"] = "org.apache.polaris.service.PolarisApplication" }
-}
-
 tasks.register<Jar>("testJar") {
   archiveClassifier.set("tests")
   from(sourceSets.test.get().output)
 }
-
-val shadowJar =
-  tasks.named<ShadowJar>("shadowJar") {
-    manifest { attributes["Main-Class"] = "org.apache.polaris.service.PolarisApplication" }
-    mergeServiceFiles()
-    isZip64 = true
-    finalizedBy("startScripts")
-  }
-
-val startScripts =
-  tasks.named<CreateStartScripts>("startScripts") {
-    classpath = files(provider { shadowJar.get().archiveFileName })
-  }
-
-tasks.register<Sync>("prepareDockerDist") {
-  into(project.layout.buildDirectory.dir("docker-dist"))
-  from(startScripts) { into("bin") }
-  from(shadowJar) { into("lib") }
-  doFirst { delete(project.layout.buildDirectory.dir("regtest-dist")) }
-}
-
-tasks.named("build").configure { dependsOn("prepareDockerDist") }
-
-tasks.named("assemble").configure { dependsOn("testJar") }

@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -274,7 +275,16 @@ public class PolarisApplication extends Application<PolarisApplicationConfig> {
     authenticator.setMetaStoreManagerFactory(metaStoreManagerFactory);
     AuthFilter<String, AuthenticatedPolarisPrincipal> oauthCredentialAuthFilter =
         new OAuthCredentialAuthFilter.Builder<AuthenticatedPolarisPrincipal>()
-            .setAuthenticator(authenticator)
+            .setAuthenticator(
+                cred -> {
+                  try {
+                    return authenticator.authenticate(cred);
+                  } catch (RuntimeException e) {
+                    throw e;
+                  } catch (Exception e) {
+                    throw new AuthenticationException(e);
+                  }
+                })
             .setPrefix("Bearer")
             .buildAuthFilter();
     environment.jersey().register(new AuthDynamicFeature(oauthCredentialAuthFilter));

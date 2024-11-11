@@ -19,12 +19,12 @@
 package org.apache.polaris.service.ratelimiter;
 
 import static org.apache.polaris.service.context.DefaultContextResolver.REALM_PROPERTY_KEY;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import jakarta.ws.rs.core.Response;
 import java.util.function.Consumer;
 import org.apache.polaris.service.config.PolarisApplicationConfig;
+import org.assertj.core.api.Assertions;
 
 /** Common test utils for testing rate limiting */
 public class TestUtil {
@@ -49,7 +49,7 @@ public class TestUtil {
               .header("Authorization", "Bearer " + userToken)
               .header(REALM_PROPERTY_KEY, realm)
               .get()) {
-        assertThat(response).returns(status.getStatusCode(), Response::getStatus);
+        Assertions.assertThat(response).returns(status.getStatusCode(), Response::getStatus);
       }
     };
   }

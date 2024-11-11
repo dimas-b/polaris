@@ -21,7 +21,6 @@ package org.apache.polaris.service;
 import com.google.common.base.Stopwatch;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.ext.Provider;
 import org.apache.polaris.core.context.CallContext;
 import org.apache.polaris.core.monitor.PolarisMetricRegistry;
 import org.apache.polaris.core.resource.TimedApi;
@@ -35,7 +34,6 @@ import org.glassfish.jersey.server.monitoring.RequestEventListener;
  * annotated by {@link TimedApi}. It uses the {@link PolarisMetricRegistry} for metric collection
  * and properly times the resource on success and increments the error counter on failure.
  */
-@Provider
 public class TimedApplicationEventListener implements ApplicationEventListener {
 
   // The PolarisMetricRegistry instance used for recording metrics and error counters.

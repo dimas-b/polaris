@@ -52,6 +52,7 @@ import org.apache.polaris.service.types.TableUpdateNotification;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.assertj.core.api.Assertions;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -294,12 +295,12 @@ public class PolarisSparkIntegrationTest {
 
     onSpark("USE " + EXTERNAL_CATALOG_NAME);
     List<Row> existingNamespaces = onSpark("SHOW NAMESPACES").collectAsList();
-    assertThat(existingNamespaces).isEmpty();
+    Assertions.assertThat(existingNamespaces).isEmpty();
 
     onSpark("CREATE NAMESPACE externalns1");
     onSpark("USE externalns1");
     List<Row> existingTables = onSpark("SHOW TABLES").collectAsList();
-    assertThat(existingTables).isEmpty();
+    Assertions.assertThat(existingTables).isEmpty();
 
     LoadTableResponse tableResponse = loadTable(CATALOG_NAME, "ns1", "tb1");
     try (Response registerResponse =
@@ -325,7 +326,10 @@ public class PolarisSparkIntegrationTest {
     long tableCount = onSpark("SHOW TABLES").count();
     assertThat(tableCount).isEqualTo(1);
     List<Row> tables = onSpark("SHOW TABLES").collectAsList();
-    assertThat(tables).hasSize(1).extracting(row -> row.getString(1)).containsExactly("mytb1");
+    Assertions.assertThat(tables)
+        .hasSize(1)
+        .extracting(row -> row.getString(1))
+        .containsExactly("mytb1");
     long rowCount = onSpark("SELECT * FROM mytb1").count();
     assertThat(rowCount).isEqualTo(3);
     assertThatThrownBy(() -> onSpark("INSERT INTO mytb1 VALUES (20, 'new_text')"))
