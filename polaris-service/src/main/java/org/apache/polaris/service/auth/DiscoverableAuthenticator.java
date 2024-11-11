@@ -19,9 +19,8 @@
 package org.apache.polaris.service.auth;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.dropwizard.auth.Authenticator;
-import io.dropwizard.jackson.Discoverable;
 import java.security.Principal;
+import java.util.Optional;
 import org.apache.polaris.service.config.HasMetaStoreManagerFactory;
 
 /**
@@ -35,4 +34,7 @@ import org.apache.polaris.service.config.HasMetaStoreManagerFactory;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "class")
 public interface DiscoverableAuthenticator<C, P extends Principal>
-    extends Authenticator<C, P>, Discoverable, HasMetaStoreManagerFactory {}
+    extends HasMetaStoreManagerFactory {
+
+  Optional<P> authenticate(C credentials) throws Exception;
+}

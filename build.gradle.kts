@@ -85,7 +85,8 @@ tasks.named<RatTask>("rat").configure {
 
   excludes.add("logs/**")
   excludes.add("polaris-service/src/**/banner.txt")
-  excludes.add("polaris-service/logs")
+
+  excludes.add("server-dropwizard/logs")
 
   excludes.add("site/node_modules/**")
   excludes.add("site/layouts/robots.txt")

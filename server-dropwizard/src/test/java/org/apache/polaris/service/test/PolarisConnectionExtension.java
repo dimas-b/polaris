@@ -19,7 +19,6 @@
 package org.apache.polaris.service.test;
 
 import static org.apache.polaris.service.context.DefaultContextResolver.REALM_PROPERTY_KEY;
-import static org.apache.polaris.service.test.DropwizardTestEnvironmentResolver.findDropwizardExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -65,7 +64,8 @@ public class PolarisConnectionExtension
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) throws Exception {
-    dropwizardAppExtension = findDropwizardExtension(extensionContext);
+    dropwizardAppExtension =
+        DropwizardTestEnvironmentResolver.findDropwizardExtension(extensionContext);
     if (dropwizardAppExtension == null) {
       return;
     }

@@ -19,7 +19,6 @@
 package org.apache.polaris.service.auth;
 
 import com.google.common.base.Splitter;
-import io.dropwizard.auth.AuthenticationException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,8 +49,7 @@ public class TestInlineBearerTokenPolarisAuthenticator extends BasePolarisAuthen
       LoggerFactory.getLogger(TestInlineBearerTokenPolarisAuthenticator.class);
 
   @Override
-  public Optional<AuthenticatedPolarisPrincipal> authenticate(String credentials)
-      throws AuthenticationException {
+  public Optional<AuthenticatedPolarisPrincipal> authenticate(String credentials) {
     Map<String, String> properties = extractPrincipal(credentials);
     PolarisMetaStoreManager metaStoreManager =
         metaStoreManagerFactory.getOrCreateMetaStoreManager(
