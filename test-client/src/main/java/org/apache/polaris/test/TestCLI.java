@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
 import org.apache.iceberg.BaseTransaction;
 import org.apache.iceberg.Schema;
 import org.apache.iceberg.Table;
@@ -33,6 +32,7 @@ import org.apache.iceberg.UpdateSchema;
 import org.apache.iceberg.catalog.Namespace;
 import org.apache.iceberg.catalog.TableCommit;
 import org.apache.iceberg.catalog.TableIdentifier;
+import org.apache.iceberg.exceptions.CommitFailedException;
 import org.apache.iceberg.rest.RESTCatalog;
 import org.apache.iceberg.types.Types;
 
@@ -94,7 +94,7 @@ public class TestCLI {
   private static void update(String prefix) {
 
     Set<Integer> all = new TreeSet<>();
-    for(int n = 1; n < 1_000_000; n++) {
+    for (int n = 1; n < 1_000_000; ) {
       Set<Integer> values = new HashSet<>();
       TableCommit[] commits = new TableCommit[numTables];
       for (int i = 0; i < numTables; i++) {
@@ -103,7 +103,7 @@ public class TestCLI {
 
         Schema schema = t.schema();
         Types.NestedField field =
-                schema.columns().stream().filter(c -> c.name().startsWith(prefix)).findFirst().get();
+            schema.columns().stream().filter(c -> c.name().startsWith(prefix)).findFirst().get();
         String name = field.name();
         int v = Integer.parseInt(name.substring(prefix.length()));
         values.add(v);
@@ -119,7 +119,12 @@ public class TestCLI {
         throw new IllegalStateException("update skew: " + values);
       }
 
-      catalog.commitTransaction(commits);
+      try {
+        catalog.commitTransaction(commits);
+      } catch (CommitFailedException e) {
+        System.out.println("CF: " + e);
+        continue;
+      }
 
       int current = values.iterator().next();
       all.add(current);
@@ -128,6 +133,8 @@ public class TestCLI {
       if (all.size() != n) {
         throw new IllegalStateException("sequence skew: " + all);
       }
+
+      n++;
     }
   }
 }
