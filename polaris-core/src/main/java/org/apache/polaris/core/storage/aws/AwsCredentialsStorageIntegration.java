@@ -116,7 +116,7 @@ public class AwsCredentialsStorageIntegration
       accessConfig.put(StorageAccessProperty.CLIENT_REGION, region);
     }
 
-    URI endpointUri = storageConfig.getEndpointUri();
+    URI endpointUri = storageConfig.getInternalEndpointUri();
     if (endpointUri != null) {
       accessConfig.put(StorageAccessProperty.AWS_ENDPOINT, endpointUri.toString());
     }

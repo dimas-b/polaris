@@ -1056,6 +1056,13 @@ components:
               type: string
               description: endpoint for STS requests (optional). If not set, defaults to 'endpoint'.
               example: "https://sts.example.com:1234"
+            endpointInternal:
+              type: string
+              description: >-
+                endpoint for S3 requests made by the Polaris Server (optional). If set, Polaris Service will use
+                this value instead of "endpoint". If not set, defaults to 'endpoint'. Iceberg REST API clients never
+                see this value.
+              example: "https://s3.internal.example.com:1234"
             pathStyleAccess:
               type: boolean
               description: >- 

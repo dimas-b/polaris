@@ -35,7 +35,7 @@ public class AwsStorageConfigurationInfoTest {
   private static AwsStorageConfigurationInfo config(
       String endpoint, String stsEndpoint, Boolean pathStyle) {
     return new AwsStorageConfigurationInfo(
-        S3, List.of(), "role", null, null, endpoint, stsEndpoint, pathStyle);
+        S3, List.of(), "role", null, null, endpoint, stsEndpoint, pathStyle, null);
   }
 
   @Test
